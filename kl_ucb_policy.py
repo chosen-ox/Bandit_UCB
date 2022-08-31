@@ -113,8 +113,8 @@ class KLUCBPolicy :
         self.reset()
 
     def reset(self):
-        self.N = np.zeros(self.K)
-        self.S = np.zeros(self.K)
+        self.N = np.zeros(self.K) #Count for each arm to be selected
+        self.S = np.zeros(self.K) #Count for success of each arm
 
     def select_next_arm(self):
         t = np.sum(self.N)
@@ -174,7 +174,47 @@ class GORS(KLUCBPolicy):
         for i in range(len(tp_estimate)):
             if math.isnan(tp_estimate[i]):
                 tp_estimate[i] = 0
-        print('tp_es is: ', tp_estimate)
         self.L = np.argmax(tp_estimate)  # Leading arm
-        print('L is:', self.L)
         self.l[self.L] += 1
+
+class KLUCB_EWMA(KLUCBPolicy):
+    """
+    KL-UCB with Exponentially Weighted Moving Averages
+    """
+    def __init__(self, K, rate, alpha):
+        super().__init__(K, rate, klucb_upper=klucb_upper_bisection, kl_distance=kl_bernoulli, precision=1e-6,
+                 max_iterations=50)
+        self.alpha = alpha #EWMA discount
+
+    def update_state(self, k, r):
+        self.N[k] += (1 - self.alpha) * self.N[k] + self.alpha * 1
+        self.S[k] += (1 - self.alpha) * self.S[k] + self.alpha * r
+
+class KLUCB_SW(KLUCBPolicy):
+    """
+    KL-UCB with Sliding Window
+    """
+    def __init__(self, K, rate, tau):
+        super().__init__(K, rate, klucb_upper=klucb_upper_bisection, kl_distance=kl_bernoulli, precision=1e-6,
+                 max_iterations=50)
+        self.tau = tau #Window size
+
+    def reset(self):
+        self.N_window = [[] for i in range(self.K)]
+        self.S_window = [[] for i in range(self.K)]
+        self.N = np.zeros(self.K)
+        self.S = np.zeros(self.K)
+
+    def update_state(self, k, r):
+        if len(self.N_window[k]) == self.tau:
+            self.N_window[k].pop(0)
+            self.N_window[k].append(1)
+            self.S_window[k].pop(0)
+            self.S_window[k].append(r)
+        else:
+            self.N_window[k].append(1)
+            self.S_window[k].append(r)
+        self.N[k] = sum(self.N_window[k])
+        self.S[k] = sum(self.S_window[k])
+        print(self.N_window)
+        print(self.S_window)
