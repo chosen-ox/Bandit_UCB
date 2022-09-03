@@ -222,7 +222,7 @@ class GORS_EWMA(GORS):
     def __init__(self, K, rate, tau, alpha):
         super().__init__(K, rate, klucb_upper=klucb_upper_bisection_with_l)
         self.alpha = alpha #EWMA discount
-        self.tau = tau #Window size
+        self.tau = tau#Window size
 
     def reset(self):
         super().reset()
@@ -230,7 +230,7 @@ class GORS_EWMA(GORS):
 
     def update_state(self, k, r):
         if self.t < self.tau:
-            super().update_state(k,r)
+            super().update_state(k, r)
             return
 
         self.N[k] = (1 - self.alpha) * self.N[k] + self.alpha * 1
