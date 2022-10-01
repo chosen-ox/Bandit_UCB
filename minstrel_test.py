@@ -26,11 +26,9 @@ def check_update(his_group_succ, his_group_total):
             cur_group_total[i] = int (group[-1])
         f.close()
         if (compareTwoList(cur_group_total, his_group_total)):
-            # print(cur_group_total)
-            # print(his_group_total)
-            print("wrong!")
-            his_group_succ = cur_group_succ[:]
-            his_group_total = cur_group_total[:]
+            print("choose a rate....")
+            his_group_succ[:] = cur_group_succ
+            his_group_total[:] = cur_group_total
             break
     return True
 
@@ -72,7 +70,7 @@ def main():
     actions_klucb = np.zeros((K, T), dtype=int)
     while (True):
         while (check_update(his_group_succ, his_group_total)):
-            print(t)
+            print("time is",t)
             arm_klucb = klucb.select_next_arm()
             print("select arm is ", arm_klucb)
             actions_klucb[arm_klucb, t] = 1
