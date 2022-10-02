@@ -3,6 +3,42 @@ import numpy as np
 import math
 import pickle
 import kl_ucb_policy_minstrel
+import os
+
+def echo_switch(idx):
+    if (idx == 0):
+        os.system("echo '00' > /proc/mytest")
+    elif (idx == 1):
+        os.system("echo '01' > /proc/mytest")
+    elif (idx == 2):
+        os.system("echo '02' > /proc/mytest")
+    elif (idx == 3):
+        os.system("echo '03' > /proc/mytest")
+    elif (idx == 4):
+        os.system("echo '04' > /proc/mytest")
+    elif (idx == 5):
+        os.system("echo '05' > /proc/mytest")
+    elif (idx == 6):
+        os.system("echo '06' > /proc/mytest")
+    elif (idx == 7):
+        os.system("echo '07' > /proc/mytest")
+    elif (idx == 8):
+        os.system("echo '08' > /proc/mytest")
+    elif (idx == 9):
+        os.system("echo '09' > /proc/mytest")
+    elif (idx == 10):
+        os.system("echo '10' > /proc/mytest")
+    elif (idx == 11):
+        os.system("echo '11' > /proc/mytest")
+    elif (idx == 12):
+        os.system("echo '12' > /proc/mytest")
+    elif (idx == 13):
+        os.system("echo '13' > /proc/mytest")
+    elif (idx == 14):
+        os.system("echo '14' > /proc/mytest")
+    elif (idx == 15):
+        os.system("echo '15' > /proc/mytest")
+
 def compareTwoList(list1, list2):
     for i in range(16):
         if (list1[i] != list2[i]):
@@ -34,6 +70,7 @@ def check_update(his_group_succ, his_group_total):
 
 def check_init(his_group_succ, his_group_total):
     is_init = True
+    idx = 0
     f = open("/sys/kernel/debug/ieee80211/phy0/netdev:wlp1s0/stations/dc:a6:32:a7:ca:17/rc_stats", 'r')
     f.readline() 
     f.readline() 
@@ -48,7 +85,14 @@ def check_init(his_group_succ, his_group_total):
         print(group[-2]+ " " + group[-1])
     f.close()
     if (is_init):
-        return
+        while (check_update(his_group_succ, his_group_total) and idx < 8):
+            print("time is",t)
+            arm_klucb = klucb.select_next_arm()
+            print("select arm is ", arm_klucb)
+            echo_switch(arm_klucb)
+            klucb.update_state(np.array(his_group_succ), np.array(his_group_total))
+            idx += 1
+
 
 
 
@@ -73,6 +117,7 @@ def main():
             print("time is",t)
             arm_klucb = klucb.select_next_arm()
             print("select arm is ", arm_klucb)
+            echo_switch(arm_klucb)
             actions_klucb[arm_klucb, t] = 1
             klucb.update_state(np.array(his_group_succ), np.array(his_group_total))
             t += 1
