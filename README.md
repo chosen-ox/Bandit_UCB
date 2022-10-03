@@ -20,6 +20,21 @@ We use Python and C respectively
 
 ## Environment
 
+### Linux-kernel-version
+
+5.15
+
+### Device and Environment Set Up
+
+To test the performance of the modified algorithm, an experiment is conducted. We use two industrial personal computers as clients to transmit data and a Raspberry Pi 4 as the server to receive the data.
+
+The industrial personal computer supports ath9k driver, which uses the Minstrel algorithm for rate controlling. 
+
+We successfully compile the modified mac80211 module and insert it into the Linux kernel of the computer as the experiment group. And the other computer is the reference group. The both Computers run the Ubuntu 22.04 with a 5.15 kernel. 
+
+### Test tools
+
+We use *iperf3* to send packets and view throughput of two devices.
 ## User Space Part: Implement KL_UCB
 
 ```python
