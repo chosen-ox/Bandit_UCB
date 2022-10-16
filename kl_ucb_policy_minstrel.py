@@ -140,7 +140,7 @@ class GORS(KLUCBPolicy):
     Graphical OptimalRate Sampling
     """
     def reset(self):
-        super(GORS, self).reset()
+        # super(GORS, self).reset()
         self.L = 0 #Leading arm
         self.l = np.zeros(self.K) #Leading counts for each arm
 
@@ -159,9 +159,9 @@ class GORS(KLUCBPolicy):
         # print('indices are: ',indices)
         return selected_arm
 
-    def update_state(self, k, r):
-        self.N[k] += 1
-        self.S[k] += r
+    def update_state(self, S, N):
+        self.S = S
+        self.N = N
         tp_estimate = np.multiply(self.rate, np.true_divide(self.S, self.N))  # Estimated throughput
         for i in range(len(tp_estimate)):
             if math.isnan(tp_estimate[i]):
