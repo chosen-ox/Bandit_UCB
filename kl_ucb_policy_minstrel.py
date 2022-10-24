@@ -176,6 +176,9 @@ class KLUCB_EWMA(KLUCBPolicy):
     def __init__(self, K, rate, alpha, tau):
         super().__init__(K, rate, klucb_upper=klucb_upper_bisection, kl_distance=kl_bernoulli, precision=1e-6,
                  max_iterations=50)
+
+        self.N = np.zeros(self.K) #Count for each arm to be selected
+        self.S = np.zeros(self.K) #Count for success of each arm
         self.alpha = alpha #EWMA discount
         self.tau = tau #Window size
 
@@ -249,8 +252,18 @@ class GORS_SW(GORS):
     G-ORS with Sliding Window
     """
     def __init__(self, K, rate, tau):
-        super().__init__(K, rate, klucb_upper=klucb_upper_bisection_with_l)
+        super().__init__(K, rate, 0, 0, klucb_upper=klucb_upper_bisection_with_l)
         self.tau = tau #EWMA discount
+
+        self.L = 0 #Leading arm
+        self.l = np.zeros(self.K) #Leading counts for each arm
+
+        self.N = np.zeros(self.K) #Count for each arm to be selected
+        self.S = np.zeros(self.K) #Count for success of each arm
+
+        self.N_window = [[] for i in range(self.K)]
+        self.S_window = [[] for i in range(self.K)]
+        self.l_window = [[] for i in range(self.K)]
 
     def reset(self):
         super().reset()
@@ -258,13 +271,15 @@ class GORS_SW(GORS):
         self.S_window = [[] for i in range(self.K)]
         self.l_window = [[] for i in range(self.K)]
 
-    def update_state(self, k, r):
+    def update_state(self, k, n, s):
+        if (n == 0 and s == 0):
+            return
         if len(self.N_window[k]) == self.tau:
             self.N_window[k].pop(0)
             self.S_window[k].pop(0)
 
-        self.N_window[k].append(1)
-        self.S_window[k].append(r)
+        self.N_window[k].append(n)
+        self.S_window[k].append(s)
 
         self.N[k] = sum(self.N_window[k])
         self.S[k] = sum(self.S_window[k])
