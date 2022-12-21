@@ -26,8 +26,8 @@ class TSBanditPolicy :
         return selected_arm
 
     def update_state(self, succ, fail):
-        self.a[:] = succ
-        self.b[:] = fail
+        self.a = np.array(succ) + 1
+        self.b = np.array(fail) + 1
 
         # self.a[k] += r # update success number for selected rate k
         # self.b[k] += (1-r) # update failure number for selected rate k

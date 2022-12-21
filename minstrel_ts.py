@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.stats import beta
-import matplotlib.pyplot as plt
 import time
 import ts_bandit_policy_minstrel
 import os
@@ -116,11 +115,13 @@ def main():
     while True:
         while (check_update(his_group_succ, his_group_total)):
             print("time is", t)
+            print(his_group_succ)
+            print([(his_group_total[i]- his_group_succ[i]) for i in range(K)])
             arm_ts = ts.select_next_arm()
             actions_ts[arm_ts, t] = 1
             print("select arm is ", arm_ts)
             echo_switch(arm_ts)
-            ts.update_state(his_group_succ, his_group_total-his_group_succ)
+            ts.update_state(his_group_succ, [(his_group_total[i]- his_group_succ[i]) for i in range(K)])
 
             t += 1
 
