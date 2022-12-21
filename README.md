@@ -6,7 +6,7 @@ Code developped by **Vincent** and **Jarvis Tong**, inspired by [SMPyBandits](ht
 
 ## Structure
 - [kl_ucb_policy.py]: Code for KL-UCB with Sliding Window, EWMA and Correlation
-- [ts_bandit_policy.oy]: Codes for Thompson Sampling Bandit with Sliding Window and Correlation
+- [ts_bandit_policy.py]: Codes for Thompson Sampling Bandit with Sliding Window and Correlation
 - 2 Notebooks :
   - [EWMA&SW_Test.ipynb]: 8 different rates with differnet success probabilities; test KLUCB & TS under static & Time-variant channel
   - [Correlation_Bandit_Test.ipynb]: compare Correlation KLUCB & TS with tradiational KLUCB & TS
