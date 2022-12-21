@@ -16,6 +16,9 @@ class TSBanditPolicy :
         self.b = np.ones(self.K) # failure number for each rate
 
     def select_next_arm(self):
+        t = sum(self.a + self.b) - 2 * self.K
+        if t <= self.K - 1:
+            return int(t)
         p = beta.rvs(self.a, self.b) # estimated PER
         p_avail = p.copy()*(p>self.delta) # available rates with PER larger than delta
         if sum(p_avail) != 0:
@@ -81,10 +84,10 @@ class CBanditPolicy(TSBanditPolicy):
         mu_lead = r_emp[lead]
 
         # self.A = np.zeros(self.K) # competitive set, a boolean array. 1 indicating competitive rate, 0 indicating non-competitive rate
-        for k in range(self.K):
-            phi_tmp =self.Sig_S*self.Phi[k,:]
-            if np.min(phi_tmp) >= mu_lead:
-                self.A[k] = 1
+        # for k in range(self.K):
+        #     phi_tmp =self.Sig_S*self.Phi[k,:]
+        #     if np.min(phi_tmp) >= mu_lead:
+        #         self.A[k] = 1
         self.A[lead] = 1
 
         for k in range(self.K):
@@ -97,7 +100,7 @@ class CBanditPolicy(TSBanditPolicy):
             if min_idx == -1:
                 continue
             elif min >= mu_lead:
-                self.A[min_idx] = 1
+                self.A[k] = 1
 
     def select_next_arm(self):
         t = sum(self.a+self.b) - 2*self.K
@@ -105,7 +108,7 @@ class CBanditPolicy(TSBanditPolicy):
             return int(t)
         p = beta.rvs(self.a, self.b) # estimated PER
         p_comp = p.copy()*self.A # competitive rates
-        selected_arm = np.argmax(np.multiply(p_comp,self.rate))
+        selected_arm = np.argmax(np.multiply(p_comp, self.rate))
         return selected_arm
 
     def update_state(self, k, r):
@@ -116,7 +119,7 @@ class CBanditPolicy(TSBanditPolicy):
         for l in range(self.K):
             self.Phi[l,k] = ((n-1)*self.Phi[l,k]+self.s[r][l,k])/n # update pseudo-rewards
         for k in range(self.K):
-            self.Phi[k,k] = beta.rvs(self.a[k],self.b[k])*self.rate[k]
+            self.Phi[k,k] = beta.rvs(self.a[k], self.b[k])*self.rate[k]
 
 def construct_s(rate, K):
     s = []
