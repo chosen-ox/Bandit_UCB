@@ -4,6 +4,8 @@ import math
 import pickle
 import kl_ucb_policy_minstrel
 import os
+# 80 4
+# 120 3
 
 def echo_switch(idx):
     if (idx == 0):
