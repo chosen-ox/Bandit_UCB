@@ -113,28 +113,34 @@ def main():
     _his_group_total[:] = his_group_total
     rate = np.array([5.6, 10.6, 14.9, 18.8, 25.4, 30.7,33.0, 35.1, 6.2, 11.6, 16.3, 20.4, 27.2, 32.8, 35.1, 37.3])
     # klucb = kl_ucb_policy_minstrel.KLUCBPolicy(K, rate, his_group_succ_array, his_group_total_array) #Original KL UCB
-    klucb = kl_ucb_policy_minstrel.GORS_SW(K, rate, 20)
+    klucb = kl_ucb_policy_minstrel.GORS_SW(K, rate, 10)
     # total_rewards_list_klucb = np.zeros((runs, T))
     actions_list_klucb = []
     start_time = time.time()
     t = 0
     actions_klucb = np.zeros((K, T), dtype=int)
     arm_klucb = 0
+    _arm_klucb = 0
     
     while (True):
         while (check_update(his_group_succ, his_group_total)):
             print("time is",t)
-            print(f"succ is{his_group_succ[arm_klucb]-_his_group_succ[arm_klucb]} att is {his_group_total[arm_klucb]-_his_group_total[arm_klucb]}")
-            N = his_group_succ[arm_klucb]-_his_group_succ[arm_klucb]
-            S = his_group_total[arm_klucb]-_his_group_total[arm_klucb]
+            # print(f"succ is{his_group_succ[arm_klucb]-_his_group_succ[arm_klucb]} att is {his_group_total[arm_klucb]-_his_group_total[arm_klucb]}")
+            for i in range(16):
+                S = his_group_succ[i]-_his_group_succ[i]
+                N = his_group_total[i]-_his_group_total[i]
+                if N != 0:
+                    klucb.update_state(i, N, S)
+                
             arm_klucb = klucb.select_next_arm()
             print("select arm is ", arm_klucb)
             echo_switch(arm_klucb)
             actions_klucb[arm_klucb, t] = 1
-            klucb.update_state(arm_klucb, N, S)
+            # klucb.update_state(arm_klucb, N, S)
             t += 1
             _his_group_succ[:] = his_group_succ
             _his_group_total[:] = his_group_total
+            # _arm_klucb = arm_klucb
 
 
 

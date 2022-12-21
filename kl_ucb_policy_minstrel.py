@@ -272,8 +272,8 @@ class GORS_SW(GORS):
         self.l_window = [[] for i in range(self.K)]
 
     def update_state(self, k, n, s):
-        if (n == 0 and s == 0):
-            return
+        # if (n == 0 and s == 0):
+            # return
         if len(self.N_window[k]) == self.tau:
             self.N_window[k].pop(0)
             self.S_window[k].pop(0)
@@ -295,3 +295,4 @@ class GORS_SW(GORS):
 
         self.l_window[self.L].append(1)
         self.l[self.L] = sum(self.l_window[self.L])
+
