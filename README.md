@@ -1,4 +1,3 @@
-# bandits_kl-ucb
 ### WiFi Rate Adaption with Bandit algorithms
 Based on the article "[Multi-Armed Bandits With Correlated Arms]" and "[Rate Adaptation With Thompson Sampling in 802.11ac WLAN]".  
 Code developped by **Vincent** and **Jarvis Tong**, inspired by [SMPyBandits](https://perso.crans.org/besson/phd/SMPyBandits/index.html) and [MultiplayBanditLib](https://github.com/jkomiyama/multiplaybanditlib). 
