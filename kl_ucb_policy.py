@@ -124,8 +124,8 @@ class KLUCBPolicy:
 
             #KL-UCB index
             indices[k] = self.klucb_upper(self.kl_distance, self.N, self.S, k, t, self.precision, self.max_iterations)*self.rate[k]
-        selected_arm = np.argmax(indices)
-        return selected_arm
+
+        return np.argmax(indices)
 
     def update_state(self, k, r):
         self.N[k] += 1
@@ -136,8 +136,9 @@ class C_KLUCB(KLUCBPolicy):
     Correlated Bandit with KL-UCB
     """
     def __init__(self, K, rate, s):
-        super().__init__(K, rate)
+        super().__init__(K, rate, klucb_upper = klucb_upper_bisection, kl_distance = kl_bernoulli, precision = 1e-6, max_iterations = 50)
         self.s = s
+        self.reset()
 
     def reset(self):
         super().reset()
@@ -146,6 +147,7 @@ class C_KLUCB(KLUCBPolicy):
 
     def reduce_set(self):
         t = sum(self.N) # selected times for each arm
+        self.A = np.zeros(self.K)
         self.Sig_S = np.zeros(self.K)
         self.Sig_S += (self.N >= (t//self.K))
         r_emp = np.multiply(self.S/self.N,self.rate)
@@ -163,26 +165,23 @@ class C_KLUCB(KLUCBPolicy):
                 if min_idx == -1:
                     continue
                 elif min >= mu_lead:
-                    self.A[min_idx] = 1
+                    self.A[k] = 1
 
     def select_next_arm(self):
         # Initialization
         t = np.sum(self.N)
         indices = np.zeros(self.K)
-        for k in range(self.K):
-            if (self.N[k] == 0):
-                return k
 
+        # if t <= self.K - 1:
+        #     print('init by,',t)
+        #     return int(t)
+
+        for k in range(self.K):
             # KL-UCB index
             indices[k] = self.klucb_upper(self.kl_distance, self.N, self.S, k, t, self.precision, self.max_iterations) * \
                          self.rate[k]
 
-            # If A is empty, select arm by TS among all arms
-            if sum(self.A) == 0:
-                return np.argmax(indices)
-
-        selected_arm = np.argmax(indices*self.A)
-        return selected_arm
+        return np.argmax(indices*self.A)
 
     def update_state(self, k, r):
         super().update_state(k, r)
