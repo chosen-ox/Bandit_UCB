@@ -80,12 +80,12 @@ class CBanditPolicy(TSBanditPolicy):
         self.A = np.zeros(self.K)
         self.Sig_S = np.zeros(self.K)
         self.Sig_S += (n>=(t//self.K)) # a boolean array, 1 indicating significant rate, 0 indicating insignificant rate
-        # !!! need consideration, using emp results directly
+
         # r_emp = (beta.rvs(self.a, self.b)*self.rate)*self.Sig_S
         r_emp = np.multiply(self.a/(self.a+self.b), self.rate)
         lead = np.argmax(r_emp) # leading arm in significant set
         mu_lead = r_emp[lead]
-
+        
         self.A[lead] = 1
         for k in range(self.K):
             min = np.max(self.Phi[k,:])
@@ -116,7 +116,6 @@ class CBanditPolicy(TSBanditPolicy):
         return selected_arm
 
     def update_state(self, k, r):
-        # print('the reward is', r)
         self.a[k] += r # update success number for selected rate k
         self.b[k] += (1-r) # update failure number for selected rate k
         n = self.a[k] + self.b[k] - 2
