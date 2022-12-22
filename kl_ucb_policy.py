@@ -1,5 +1,4 @@
 import math
-
 import numpy as np
 
 def kl_bernoulli(p, q):
@@ -99,7 +98,7 @@ def klucb_upper_bisection_with_l(kl_distance, N, S, k, l, precision=1e-6, max_it
 
     return (low + up) / 2
 
-class KLUCBPolicy :
+class KLUCBPolicy:
     """
     KL-UCB algorithm
     """
@@ -125,13 +124,68 @@ class KLUCBPolicy :
 
             #KL-UCB index
             indices[k] = self.klucb_upper(self.kl_distance, self.N, self.S, k, t, self.precision, self.max_iterations)*self.rate[k]
-        # print('indices are: ', indices)
-        selected_arm = np.argmax(indices)
-        return selected_arm
+
+        return np.argmax(indices)
 
     def update_state(self, k, r):
         self.N[k] += 1
         self.S[k] += r
+
+class C_KLUCB(KLUCBPolicy):
+    """
+    Correlated Bandit with KL-UCB
+    """
+    def __init__(self, K, rate, s):
+        super().__init__(K, rate, klucb_upper = klucb_upper_bisection, kl_distance = kl_bernoulli, precision = 1e-6, max_iterations = 50)
+        self.s = s
+        self.reset()
+
+    def reset(self):
+        super().reset()
+        self.A = np.zeros(self.K)
+        self.Phi = np.zeros([self.K, self.K])  # expected pseudo-rewards
+
+    def reduce_set(self):
+        t = sum(self.N) # selected times for each arm
+        self.A = np.zeros(self.K)
+        self.Sig_S = np.zeros(self.K)
+        self.Sig_S += (self.N >= (t//self.K))
+        r_emp = np.multiply(self.S/self.N,self.rate)
+        lead = np.argmax(r_emp)
+        mu_lead = r_emp[lead]
+
+        self.A[lead] = 1
+        for k in range(self.K):
+            min = np.max(self.Phi[k,:])
+            min_idx = -1
+            for l in range(self.K):
+                if self.Sig_S[l] == 1 and self.Phi[k,l] <= min:
+                    min = self.Phi[k,l]
+                    min_idx = l
+                if min_idx == -1:
+                    continue
+                elif min >= mu_lead:
+                    self.A[k] = 1
+
+    def select_next_arm(self):
+        t = np.sum(self.N)
+        indices = np.zeros(self.K)
+
+        for k in range(self.K):
+            # KL-UCB index
+            indices[k] = self.klucb_upper(self.kl_distance, self.N, self.S, k, t, self.precision, self.max_iterations) * \
+                         self.rate[k]
+
+        return np.argmax(indices*self.A)
+
+    def update_state(self, k, r):
+        super().update_state(k, r)
+        for l in range(self.K):
+            self.Phi[l,k] = ((self.N[k]-1)*self.Phi[l,k]+self.s[r][l,k])/self.N[k] # update pseudo-rewards
+        for k in range(self.K):
+            self.Phi[k,k] = self.S[k]/self.N[k]*self.rate[k]
+
+
 
 class GORS(KLUCBPolicy):
     """
