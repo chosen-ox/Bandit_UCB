@@ -150,7 +150,7 @@ class C_KLUCB(KLUCBPolicy):
         self.A = np.zeros(self.K)
         self.Sig_S = np.zeros(self.K)
         self.Sig_S += (self.N >= (t//self.K))
-        r_emp = np.multiply(self.S/self.N,self.rate)
+        r_emp = (self.S/self.N)*self.rate*self.Sig_S
         lead = np.argmax(r_emp)
         mu_lead = r_emp[lead]
 
