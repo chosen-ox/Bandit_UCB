@@ -168,13 +168,8 @@ class C_KLUCB(KLUCBPolicy):
                     self.A[k] = 1
 
     def select_next_arm(self):
-        # Initialization
         t = np.sum(self.N)
         indices = np.zeros(self.K)
-
-        # if t <= self.K - 1:
-        #     print('init by,',t)
-        #     return int(t)
 
         for k in range(self.K):
             # KL-UCB index

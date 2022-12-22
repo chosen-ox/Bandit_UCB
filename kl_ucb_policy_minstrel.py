@@ -296,3 +296,4 @@ class GORS_SW(GORS):
         self.l_window[self.L].append(1)
         self.l[self.L] = sum(self.l_window[self.L])
 
+
