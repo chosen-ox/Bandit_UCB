@@ -1,16 +1,15 @@
-# bandits_kl-ucb
-### ENSAE - Online learning and aggregation project
-Based on the article "[The KL-UCB algortihm for bounded stochastic bandits and beyond](https://arxiv.org/abs/1102.2490)" by **Aurélien Garivier** and **Olivier Cappé**.  
-Code developped by **Thomas Levy** and **Zakarya Ali**, inspired by [SMPyBandits](https://perso.crans.org/besson/phd/SMPyBandits/index.html) and [MultiplayBanditLib](https://github.com/jkomiyama/multiplaybanditlib). 
+### WiFi Rate Adaption with Bandit algorithms
+Based on the article "[Multi-Armed Bandits With Correlated Arms]" and "[Rate Adaptation With Thompson Sampling in 802.11ac WLAN]".  
+Code developped by **Vincent** and **Jarvis Tong**, inspired by [SMPyBandits](https://perso.crans.org/besson/phd/SMPyBandits/index.html) and [MultiplayBanditLib](https://github.com/jkomiyama/multiplaybanditlib). 
 
-**Objective : Demonstrate KL-UCB (Kullback Leibler Upper Confidence Bound) algorithm advantages over UCB  in stochastic bandits problems.**
+**Objective : Demonstrate KL-UCB (Kullback Leibler Upper Confidence Bound) & TS (Thompson Sampling) algorithms advantages over traditional WiFi RA (rate adaption) algorithms.**
 
 ## Structure
-- [kl_ucb_policy.py](https://github.com/zakaryaxali/bandits_kl-ucb/blob/master/kl_ucb_policy.py) : Code for KL-UCB algorithm
-- 3 Notebooks :
-  - [scenario_1.ipynb](https://github.com/zakaryaxali/bandits_kl-ucb/blob/master/scenario_1.ipynb) : Follow the article first scenario, two arms with Bernoulli rewards.   
-  - [scenario_2.ipynb](https://github.com/zakaryaxali/bandits_kl-ucb/blob/master/scenario_2.ipynb) : 10 arms with low Bernoulli rewards.
-  - [scenario_3.ipynb](https://github.com/zakaryaxali/bandits_kl-ucb/blob/master/scenario_3.ipynb) : 2 arms with truncated exponential rewards.
+- [kl_ucb_policy.py]: Code for KL-UCB with Sliding Window, EWMA and Correlation
+- [ts_bandit_policy.py]: Codes for Thompson Sampling Bandit with Sliding Window and Correlation
+- 2 Notebooks :
+  - [EWMA&SW_Test.ipynb]: 8 different rates with differnet success probabilities; test KLUCB & TS under static & Time-variant channel
+  - [Correlation_Bandit_Test.ipynb]: compare Correlation KLUCB & TS with tradiational KLUCB & TS
   
 # Methology
 
