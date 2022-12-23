@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.stats import beta
 
+
 class TSBanditPolicy :
     """
     Thompson Sampling Bandit
@@ -16,6 +17,10 @@ class TSBanditPolicy :
         self.b = np.ones(self.K) # failure number for each rate
 
     def select_next_arm(self):
+        t = sum(self.a + self.b) - 2 * self.K
+        if t <= self.K - 1:
+            return int(t)
+
         p = beta.rvs(self.a, self.b) # estimated PER
         p_avail = p.copy()*(p>self.delta) # available rates with PER larger than delta
         if sum(p_avail) != 0:
@@ -76,18 +81,13 @@ class CBanditPolicy(TSBanditPolicy):
     def reduce_set(self):
         n = self.a + self.b - 2 # selected times for each arm
         t = sum(n) # total time
+        self.A = np.zeros(self.K)
         self.Sig_S = np.zeros(self.K)
         self.Sig_S += (n>=(t//self.K)) # a boolean array, 1 indicating significant rate, 0 indicating insignificant rate
-        r_emp = (beta.rvs(self.a, self.b)*self.rate)*self.Sig_S
-        # r_emp = beta.rvs(self.a, self.b)*self.rate
+
+        r_emp = (self.a/(self.a+self.b))*self.rate*self.Sig_S
         lead = np.argmax(r_emp) # leading arm in significant set
         mu_lead = r_emp[lead]
-
-        # self.A = np.zeros(self.K) # competitive set, a boolean array. 1 indicating competitive rate, 0 indicating non-competitive rate
-        for k in range(self.K):
-            phi_tmp =self.Sig_S*self.Phi[k,:]
-            if np.min(phi_tmp) >= mu_lead:
-                self.A[k] = 1
         self.A[lead] = 1
 
         for k in range(self.K):
@@ -100,26 +100,23 @@ class CBanditPolicy(TSBanditPolicy):
             if min_idx == -1:
                 continue
             elif min >= mu_lead:
-                self.A[min_idx] = 1
+                self.A[k] = 1
+
 
     def select_next_arm(self):
-        t = sum(self.a+self.b) - 2*self.K
-        if t <= self.K-1:
-            return int(t)
         p = beta.rvs(self.a, self.b) # estimated PER
         p_comp = p.copy()*self.A # competitive rates
         selected_arm = np.argmax(np.multiply(p_comp,self.rate))
         return selected_arm
 
-    def update_state(self, k, r):
-        # print('the reward is', r)
-        self.a[k] += r # update success number for selected rate k
-        self.b[k] += (1-r) # update failure number for selected rate k
+    def update_state(self, k, succ, fail):
+        self.a[k] += succ # update success number for selected rate k
+        self.b[k] += fail # update failure number for selected rate k
         n = self.a[k] + self.b[k] - 2
         for l in range(self.K):
-            self.Phi[l,k] = ((n-1)*self.Phi[l,k]+self.s[r][l,k])/n # update pseudo-rewards
+            self.Phi[l, k] = (self.s[1][l, k] * (self.a[k] - 1) + self.s[0][l, k] * (self.b[k] - 1))/n # update pseudo-rewards
         for k in range(self.K):
-            self.Phi[k,k] = beta.rvs(self.a[k],self.b[k])*self.rate[k]
+            self.Phi[k,k] = self.a[k]/(self.a[k]+self.b[k])*self.rate[k]
 
 def construct_s(rate, K):
     s = []
@@ -135,6 +132,3 @@ def construct_s(rate, K):
         for l in range(K):
             s[1][l,k] = rate[l]
     return s
-
-
-
