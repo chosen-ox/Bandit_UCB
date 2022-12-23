@@ -134,6 +134,83 @@ class KLUCBPolicy :
     def update_state(self, S, N):
         self.S = S
         self.N = N
+class C_KLUCB(KLUCBPolicy):
+    """
+    Correlated Bandit with KL-UCB
+    """
+    def __init__(self, K, rate, s):
+        # super().__init__(K, rate, klucb_upper = klucb_upper_bisection, kl_distance = kl_bernoulli, precision = 1e-6, max_iterations = 50)
+        self.K = K
+        self.rate = rate
+        self.kl_distance = kl_bernoulli
+        self.klucb_upper = klucb_upper_bisection
+        self.precision = 1e-6
+        self.max_iterations = 50
+        # self.S = S
+        # self.N = N
+
+        
+        self.s = s
+        self.reset()
+
+    def reset(self):
+        super().reset()
+        # self.N = np.ones(self.K) + 1
+        # self.S = np.ones(self.K)
+        self.A = np.zeros(self.K)
+        self.Phi = np.zeros([self.K, self.K])  # expected pseudo-rewards
+
+    def reduce_set(self):
+        t = sum(self.N)  # selected times for each arm
+        self.A = np.zeros(self.K)
+        self.Sig_S = np.zeros(self.K)
+        self.Sig_S += (self.N >= (t//self.K))
+        r_emp = (self.S/self.N)*self.rate*self.Sig_S
+        lead = np.argmax(r_emp)
+        mu_lead = r_emp[lead]
+
+        self.A[lead] = 1
+        for k in range(self.K):
+            min = np.max(self.Phi[k,:])
+            min_idx = -1
+            for l in range(self.K):
+                if self.Sig_S[l] == 1 and self.Phi[k,l] <= min:
+                    min = self.Phi[k,l]
+                    min_idx = l
+                if min_idx == -1:
+                    continue
+                elif min >= mu_lead:
+                    self.A[k] = 1
+
+    def select_next_arm(self):
+        t = np.sum(self.N)
+        indices = np.zeros(self.K)
+
+        for k in range(self.K):
+            # KL-UCB index
+            indices[k] = self.klucb_upper(self.kl_distance, self.N, self.S, k, t, self.precision, self.max_iterations) * \
+                         self.rate[k]
+
+        return np.argmax(indices*self.A)
+
+    def update_state(self, k, r):
+        super().update_state(k, r)
+        for l in range(self.K):
+            self.Phi[l,k] = ((self.N[k]-1)*self.Phi[l,k]+self.s[r][l,k])/self.N[k] # update pseudo-rewards
+        for k in range(self.K):
+            self.Phi[k,k] = self.S[k]/self.N[k]*self.rate[k]
+
+    def update_state(self, k, succ, fail):
+        self.S[k] += succ # update success number for selected rate k
+        self.N[k] += succ + fail # update failure number for selected rate k
+        # n = self.a[k] + self.b[k] - 2
+        for l in range(self.K):
+            self.Phi[l, k] = (self.s[1][l, k] * (self.S[k] - 1) + self.s[0][l, k] * (self.N[k] - self.S[k] - 1))/self.N[k] # update pseudo-rewards
+        for k in range(self.K):
+            self.Phi[k,k] = self.S[k]/self.N[k]*self.rate[k]
+
+
+
 
 class GORS(KLUCBPolicy):
     """

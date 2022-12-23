@@ -2,6 +2,7 @@ import numpy as np
 from scipy.stats import beta
 import time
 import ts_bandit_policy_minstrel
+import kl_ucb_policy_minstrel
 import os
 
 
@@ -86,14 +87,14 @@ def check_init(his_group_succ, his_group_total):
         his_group_total[i] = int(group[-1])
         print(group[-2] + " " + group[-1])
     f.close()
-    if (is_init):
-        while (check_update(his_group_succ, his_group_total) and idx < 8):
-            print("time is", t)
-            arm_klucb = klucb.select_next_arm()
-            print("select arm is ", arm_klucb)
-            echo_switch(arm_klucb)
-            klucb.update_state(np.array(his_group_succ), np.array(his_group_total))
-            idx += 1
+    # if (is_init):
+    #     while (check_update(his_group_succ, his_group_total) and idx < 8):
+    #         print("time is", t)
+    #         arm_klucb = klucb.select_next_arm()
+    #         print("select arm is ", arm_klucb)
+    #         echo_switch(arm_klucb)
+    #         klucb.update_state(np.array(his_group_succ), np.array(his_group_total))
+    #         idx += 1
 
 
 def main():
@@ -108,16 +109,17 @@ def main():
     his_group_succ_array = np.array(his_group_succ)
     his_group_total_array = np.array(his_group_total)
     check_init(his_group_succ, his_group_total)
+
     _his_group_succ[:] = his_group_succ
     _his_group_total[:] = his_group_total
     rate = np.array([5.6, 10.6, 14.9, 18.8, 25.4, 30.7, 33.0, 35.1, 6.2, 11.6, 16.3, 20.4, 27.2, 32.8, 35.1, 37.3])
 
     s = ts_bandit_policy_minstrel.construct_s(rate, K)
 
-    cts = ts_bandit_policy_minstrel.CBanditPolicy(K, rate, s, 0)
+    cklucb = kl_ucb_policy_minstrel.C_KLUCB(K, rate, s)
     actions_list_ts = []
 
-    cts.reset()
+    cklucb.reset()
     actions_ts = np.zeros((K, T), dtype=int)
     t = 0
     while True:
@@ -127,14 +129,12 @@ def main():
                 S = his_group_succ[i]-_his_group_succ[i]
                 N = his_group_total[i]-_his_group_total[i]
                 if N != 0:
-                    print(S)
-                    print(N)
-                    cts.update_state(i, S, N - S)
-            cts.reduce_set()
-            arm_ts = cts.select_next_arm()
-            actions_ts[arm_ts, t] = 1
-            print("select arm is ", arm_ts)
-            echo_switch(arm_ts)
+                    cklucb.update_state(i, S, N - S)
+            cklucb.reduce_set()
+            arm_klucb = cklucb.select_next_arm()
+            actions_ts[arm_klucb, t] = 1
+            print("select arm is ", arm_klucb)
+            echo_switch(arm_klucb)
             _his_group_succ[:] = his_group_succ
             _his_group_total[:] = his_group_total
             t += 1
