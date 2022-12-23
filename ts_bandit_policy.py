@@ -81,12 +81,11 @@ class CBanditPolicy(TSBanditPolicy):
         self.Sig_S = np.zeros(self.K)
         self.Sig_S += (n>=(t//self.K)) # a boolean array, 1 indicating significant rate, 0 indicating insignificant rate
 
-        # r_emp = (beta.rvs(self.a, self.b)*self.rate)*self.Sig_S
-        r_emp = np.multiply(self.a/(self.a+self.b), self.rate)
+        r_emp = (self.a/(self.a+self.b))*self.rate*self.Sig_S
         lead = np.argmax(r_emp) # leading arm in significant set
         mu_lead = r_emp[lead]
-        
         self.A[lead] = 1
+
         for k in range(self.K):
             min = np.max(self.Phi[k,:])
             min_idx = -1
@@ -101,16 +100,7 @@ class CBanditPolicy(TSBanditPolicy):
 
 
     def select_next_arm(self):
-        # Initialization
-        # t = sum(self.a+self.b) - 2*self.K
-        # if t <= self.K-1:
-        #     return int(t)
-
         p = beta.rvs(self.a, self.b) # estimated PER
-        # If A is empty, select arm by TS among all arms
-        if sum(self.A) == 0:
-            return np.argmax(np.multiply(p,self.rate))
-
         p_comp = p.copy()*self.A # competitive rates
         selected_arm = np.argmax(np.multiply(p_comp,self.rate))
         return selected_arm
@@ -121,9 +111,7 @@ class CBanditPolicy(TSBanditPolicy):
         n = self.a[k] + self.b[k] - 2
         for l in range(self.K):
             self.Phi[l,k] = ((n-1)*self.Phi[l,k]+self.s[r][l,k])/n # update pseudo-rewards
-        # !!! need consideration, using emp results directly
         for k in range(self.K):
-            # self.Phi[k,k] = beta.rvs(self.a[k],self.b[k])*self.rate[k]
             self.Phi[k,k] = self.a[k]/(self.a[k]+self.b[k])*self.rate[k]
 
 def construct_s(rate, K):
@@ -140,6 +128,3 @@ def construct_s(rate, K):
         for l in range(K):
             s[1][l,k] = rate[l]
     return s
-
-
-
