@@ -64,7 +64,7 @@ class CBanditPolicy(TSBanditPolicy):
     """
     Correlated Bandit based on Thompson Sampling
     """
-    def __init__(self, K, rate, s, delta):
+    def __init__(self, K, rate, s, delta=0):
         super().__init__(K, rate, delta)
         self.s = s # conditional upper bound matrix [[K,K],[K,K]]
         self.reset()
@@ -72,7 +72,7 @@ class CBanditPolicy(TSBanditPolicy):
     def reset(self):
         super().reset()
         self.A = np.zeros(self.K)
-        self.Phi = np.zeros([self.K,self.K]) # expected pseudo-rewards
+        self.Phi = np.zeros([self.K, self.K]) # expected pseudo-rewards
 
     def reduce_set(self):
         n = self.a + self.b - 2 # selected times for each arm
@@ -111,8 +111,41 @@ class CBanditPolicy(TSBanditPolicy):
         n = self.a[k] + self.b[k] - 2
         for l in range(self.K):
             self.Phi[l,k] = ((n-1)*self.Phi[l,k]+self.s[r][l,k])/n # update pseudo-rewards
-        for k in range(self.K):
-            self.Phi[k,k] = self.a[k]/(self.a[k]+self.b[k])*self.rate[k]
+        # for k in range(self.K):
+        #     self.Phi[k,k] = self.a[k]/(self.a[k]+self.b[k])*self.rate[k]
+        self.Phi[k, k] = self.a[k] / (self.a[k] + self.b[k]) * self.rate[k]
+
+class CTS_SW(CBanditPolicy):
+    """
+    Correlated Bandit based on Thompson Sampling with Sliding Window
+    """
+    def __init__(self, K, rate, s, tau, delta):
+        super(CTS_SW, self).__init__(K, rate, s, delta)
+        self.tau = tau # Window Size
+        self.reset()
+
+    def reset(self):
+        super(CTS_SW, self).reset()
+        self.a_window = [[] for i in range(self.K)]  # sliding window for success number of each rate, [K,tau] matrix
+        self.b_window = [[] for i in range(self.K)]  # sliding window for failure number of each rate, [K, tau] matrix
+
+    def update_state(self, k, r):
+        if len(self.a_window[k]) == self.tau:
+            self.a_window[k].pop(0)
+            self.a_window[k].append(r)
+            self.b_window[k].pop(0)
+            self.b_window[k].append(1-r)
+        else:
+            self.a_window[k].append(r)
+            self.b_window[k].append(1-r)
+        self.a[k] = np.max([sum(self.a_window[k]),1]) # alpha is the sum of success numer in the window
+        self.b[k] = np.max([sum(self.b_window[k]),1]) # beta is the sum of failure number in the window
+
+        n = self.a[k] + self.b[k]
+        for l in range(self.K):
+           self.Phi[l,k] = (self.a[k]*self.s[0][l,k] + self.b[k]*self.s[1][l,k])/n
+        self.Phi[k,k] = self.a[k]/n*self.rate[k]
+
 
 def construct_s(rate, K):
     s = []
