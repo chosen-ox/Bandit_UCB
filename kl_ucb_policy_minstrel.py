@@ -210,7 +210,35 @@ class C_KLUCB(KLUCBPolicy):
             self.Phi[k,k] = self.S[k]/self.N[k]*self.rate[k]
 
 
+class CKLUCB_SW(C_KLUCB):
+    '''
+    Correlated KL-UCB with Sliding Window
+    '''
 
+    def __init__(self, K, rate, s, tau):
+        super(CKLUCB_SW, self).__init__(K, rate, s)
+        self.tau = tau  # Window Size
+        self.reset()
+
+    def reset(self):
+        super(CKLUCB_SW, self).reset()
+        self.N_window = [[] for i in range(self.K)]
+        self.S_window = [[] for i in range(self.K)]
+
+
+    def update_state(self, k, succ, fail):
+        if len(self.N_window[k]) == self.tau:
+            self.N_window[k].pop(0)
+            self.S_window[k].pop(0)
+        self.N_window[k].append(succ + fail)
+        self.S_window[k].append(succ)
+        self.N[k] = sum(self.N_window[k])
+        self.S[k] = sum(self.S_window[k])
+
+        # update pseudo-rewards
+        for l in range(self.K):
+            self.Phi[l, k] = (self.S[k] * self.s[1][l, k] + (self.N[k] - self.S[k]) * self.s[0][l, k]) / self.N[k]
+        self.Phi[k, k] = self.S[k] / self.N[k] * self.rate[k]
 
 class GORS(KLUCBPolicy):
     """
