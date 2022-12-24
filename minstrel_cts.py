@@ -114,7 +114,7 @@ def main():
 
     s = ts_bandit_policy_minstrel.construct_s(rate, K)
 
-    cts = ts_bandit_policy_minstrel.CBanditPolicy(K, rate, s, 0)
+    cts = ts_bandit_policy_minstrel.CTS(K, rate, s, 0)
     actions_list_ts = []
 
     cts.reset()
