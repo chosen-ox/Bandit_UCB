@@ -116,7 +116,7 @@ def main():
 
     s = ts_bandit_policy_minstrel.construct_s(rate, K)
 
-    cklucb_sw = kl_ucb_policy_minstrel.CKLUCB_SW(K, rate, s)
+    cklucb_sw = kl_ucb_policy_minstrel.CKLUCB_SW(K, rate, s, 10)
     actions_list_ts = []
 
     cklucb_sw.reset()

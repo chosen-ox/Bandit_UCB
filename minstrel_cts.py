@@ -116,20 +116,23 @@ def main():
 
     cts = ts_bandit_policy_minstrel.CTS(K, rate, s, 0)
     actions_list_ts = []
-
+    flag = 1
     cts.reset()
     actions_ts = np.zeros((K, T), dtype=int)
     t = 0
     while True:
         while (check_update(his_group_succ, his_group_total)):
             print("time is", t)
-            for i in range(16):
-                S = his_group_succ[i]-_his_group_succ[i]
-                N = his_group_total[i]-_his_group_total[i]
-                if N != 0:
-                    print(S)
-                    print(N)
-                    cts.update_state(i, S, N - S)
+            if flag == 0:
+                for i in range(16):
+                    S = his_group_succ[i]-_his_group_succ[i]
+                    N = his_group_total[i]-_his_group_total[i]
+                    if N != 0:
+                        print(S)
+                        print(N)
+                        cts.update_state(i, S, N - S)
+            else:
+                flag = 1
             cts.reduce_set()
             arm_ts = cts.select_next_arm()
             actions_ts[arm_ts, t] = 1
