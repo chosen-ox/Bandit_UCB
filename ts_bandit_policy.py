@@ -143,7 +143,7 @@ class CTS_SW(CBanditPolicy):
 
         n = self.a[k] + self.b[k]
         for l in range(self.K):
-           self.Phi[l,k] = (self.a[k]*self.s[0][l,k] + self.b[k]*self.s[1][l,k])/n
+           self.Phi[l,k] = (self.a[k]*self.s[1][l,k] + self.b[k]*self.s[0][l,k])/n
         self.Phi[k,k] = self.a[k]/n*self.rate[k]
 
 
