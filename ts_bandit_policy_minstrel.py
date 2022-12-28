@@ -51,15 +51,13 @@ class TSBandit_SW(TSBanditPolicy):
         self.a = np.zeros(self.K)
         self.b = np.zeros(self.K)
 
-    def update_state(self, k, r):
+    def update_state(self, k, succ, fail):
         if len(self.a_window[k]) == self.tau:
             self.a_window[k].pop(0)
-            self.a_window[k].append(r)
             self.b_window[k].pop(0)
-            self.b_window[k].append(1-r)
-        else:
-            self.a_window[k].append(r)
-            self.b_window[k].append(1-r)
+
+        self.a_window[k].append(succ)
+        self.b_window[k].append(fail)
         self.a[k] = sum(self.a_window[k]) # alpha is the sum of success numer in the window
         self.b[k] = sum(self.b_window[k]) # beta is the sum of failure number in the window
 

@@ -313,15 +313,12 @@ class KLUCB_SW(KLUCBPolicy):
         self.N = np.zeros(self.K)
         self.S = np.zeros(self.K)
 
-    def update_state(self, k, r):
+    def update_state(self, k, s, n):
         if len(self.N_window[k]) == self.tau:
             self.N_window[k].pop(0)
-            self.N_window[k].append(1)
             self.S_window[k].pop(0)
-            self.S_window[k].append(r)
-        else:
-            self.N_window[k].append(1)
-            self.S_window[k].append(r)
+        self.N_window[k].append(n)
+        self.S_window[k].append(s)
         self.N[k] = sum(self.N_window[k])
         self.S[k] = sum(self.S_window[k])
 
