@@ -1,8 +1,9 @@
 import sys
 import matplotlib.pyplot as plt
 import numpy as np
-filename = sys.argv[1]
-f = open(filename, 'r')
+
+# filename = sys.argv[1]
+f = open('D:/Academic/RateControl/Bandit_UCB/datas/ucb_1', 'r')
 for i in range(6):
     f.readline()
 rate_list = []
